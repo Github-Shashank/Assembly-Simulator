@@ -5,6 +5,8 @@ ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 program = 0
 
+d={}
+t = []
 mnemonic = {
     'NOP':'0'*17,
     'HLT':'0'*16+'1',
@@ -20,6 +22,9 @@ mnemonic = {
     'LD_M2R':'01011',
     'LD_R2M':'01100',
     'JUMP':'01101',
+    'INP':'0111000000000',
+    'OUT':'0111001000000',
+    'LDM':'01111',
     'CALL':'1000000',
     'RET':'10000010000000000',
 
@@ -42,9 +47,9 @@ mnemonic = {
     '=':'0001',
     '!=':'0010',
     '<':'0011',
-    '=>':'0100',
+    '>=':'0100',
     '>':'0101',
-    '=<':'0110',
+    '<=':'0110',
     'ODD':'0111',
     'EVEN':'1000',
 
@@ -68,10 +73,7 @@ mnemonic = {
     'ONLY':'00',
     'IF':'01',
     'IF_NOT':'10',
-    'BY':'11',
-
-    'INP':'0111000000000',
-    'OUT':'0111001000000'
+    'BY':'11'
 }
 
 def print_text():
@@ -107,15 +109,19 @@ def print_text():
                     ins_address_list.append(ins_addr)
                     a+=' '+word
         code.append(a)
+
     for i in ins_address_list:
         a = ''
         words = code[i].split(' ')
         code[i] = words[0]+mnemonic[words[1]]
         
-    print('Machine code :-\n')
+    print('\nMachine code :-\n')
     for i in code:
         if len(i) == 17:
             print("'"+i,end="',")
+
+    d[1] = lines
+    d[0] = code
 
     # Optionally, clear the text box after printing
     text_box.delete("1.0", "end")
@@ -129,7 +135,7 @@ text_box = tk.Text(window, height=20, width=50)  # Set height and width
 text_box.pack(pady=20, padx=20) # Add padding around the textbox
 
 # Create the button to print the text
-print_button = tk.Button(window, text="Print Text", command=print_text)
+print_button = tk.Button(window, text="Print Machine Code", command=print_text)
 print_button.pack() # Use pack layout
 
 # Create an Exit button
