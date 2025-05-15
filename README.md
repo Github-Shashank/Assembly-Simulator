@@ -72,7 +72,7 @@ HLT s.hlt
 
 ### Step 1: Write Code in High or Low level language
 - Use `Compiler.py` to write Python-style code for high level language
-- Skip to Step 3 for loe level language
+- Skip to Step 3 for low level language
 
 ### Step 2: Generate Assembly Code
 - Click **"Print Assembly Code"**
@@ -89,8 +89,8 @@ python Assembly_CLI_Simulation.py
 ```
 
 ### Step 6: Observe Output
-- Program will ask for inputs in integer upto 0 to 255
-
+- Program will ask for integer inputs and also ouput in the range 0 to 255
+- At the end, it prints HALT 
 ---
 
 ## 🧪 Sample Output
@@ -120,4 +120,4 @@ Enter number :- 10
 
 ## 📜 License
 
-This project is for educational purposes and experimentation with assembly simulation in Python. No license is currently applied.
+This project is licensed under the [MIT License](LICENSE).
