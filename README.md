@@ -111,8 +111,8 @@ Enter number :- 10
 
 ```
 ├── Assembler.py
-├── Assembly_CLI_Simulation.py
 ├── Compiler.py
+├── Hardware Simulation.py
 └── README.md  ← (this file)
 ```
 
