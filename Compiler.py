@@ -23,14 +23,19 @@ d = {
     '|':'OR',
     '&':'AND',
     '*':'MUL'
-    }
+}
+
+# Error message if variable already initialised
 
 def mem_addr_var(var):
     if not var in variable:
         variable[var] = str(len(variable))
         return variable[var]
     else:
-        print('Already initialised')
+        print('Already initialised var',var)
+
+
+# int <var>
 
 def int_var(s):
     pattern = r"^int\s+([a-zA-Z_][a-zA-Z0-9_]*)$"
@@ -39,6 +44,8 @@ def int_var(s):
         var1 = match.group(1)
         mem_addr_var(var1)
     return re.match(pattern, s) is not None    
+
+# <var> = <val>
 
 def set_var(s):
     pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(\d+)$" # a = 5
@@ -51,6 +58,8 @@ LD_R2M R0 {variable[var1]}'''
         print(a)
     return re.match(pattern, s) is not None
 
+# <var> = <var>
+
 def get_var(s):
     pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)$"
     match = re.match(pattern,s)   # a = b
@@ -62,6 +71,8 @@ LD_R2M R0 {variable[var1]}'''
         print(a)
     return re.match(pattern, s) is not None
 
+# <var> = input()
+
 def input_var(s):
     pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*input\(\)$"
     match = re.match(pattern,s)
@@ -71,6 +82,8 @@ def input_var(s):
 LD_R2M R0 {variable[var1]}'''
         print(a)
     return re.match(pattern, s) is not None
+
+# print(<var>)
 
 def print_var(s):
     pattern = r"^print\(([a-zA-Z_][a-zA-Z0-9_]*)\)$"
@@ -82,8 +95,10 @@ OUT R0'''
         print(a)
     return re.match(pattern, s) is not None
 
+# <var> = <var> <opr> <var>
+
 def setexp_var(s):
-    pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*([-+*/^|&]?)\s*([a-zA-Z_][a-zA-Z0-9_]*)$"    
+    pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*([-+*/^|&])\s*([a-zA-Z_][a-zA-Z0-9_]*)$"
     match = re.match(pattern,s)
     if match:                   # a = b + c
         var1 = match.group(1)
@@ -96,6 +111,8 @@ LD_M2R R1 {variable[var4]}
 LD_R2M R2 {variable[var1]}'''
         print(a)
     return re.match(pattern, s) is not None
+
+# <var> <opr>= <var>
 
 def updatexp_byvar(s):
     pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*([-+*/^|&])=\s*([a-zA-Z_][a-zA-Z0-9_]*)$"
@@ -111,6 +128,8 @@ LD_R2M R0 {variable[var1]}'''
         print(a)
     return re.match(pattern, s) is not None
 
+# <var> <opr>= <var>
+
 def updatexp_var(s):
     pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*([-+*/^|&])=\s*(\d+)$"
     match = re.match(pattern,s)
@@ -124,6 +143,8 @@ LD_M2R R1 {variable[var1]}
 LD_R2M R1 {variable[var1]}'''
         print(a)
     return re.match(pattern, s) is not None
+
+# <var> = <var><s_opr> (operator needs single value i.e. x>>1, x++1, ~x etc.)
 
 def singleopr_var(s):
     possible_values = [
@@ -154,6 +175,8 @@ LD_R2M R0 {variable[var1]}'''
         print(a)
     return pattern.match(s) is not None
 
+# if <var> <cmp_opr> <var> : (comparison operator i.e. ==, !=, <, > etc.)
+
 def if_line(s):
     global current_indent
     global if_id
@@ -183,6 +206,8 @@ JUMP IF_NOT .else_{if_indent[current_indent]}'''
         print(a)
     return pattern.match(s) is not None
 
+# else :
+
 def else_line(s):
     global current_indent
     pattern = r"^else\s*:$"
@@ -193,6 +218,8 @@ def else_line(s):
 NOP s.else_{if_indent[current_indent]}'''
         print(a)
     return re.match(pattern, s) is not None
+
+# while <var> <cmp_opr> <var> :
 
 def while_line(s):
     global current_indent
@@ -226,6 +253,8 @@ JUMP IF_NOT .whlie_not_{while_indent[current_indent]}'''
         print(a)
     return pattern.match(s) is not None
 
+# for <var> in range(<val>)
+
 def for_line(s):
     global current_indent
     global for_id
@@ -248,6 +277,8 @@ CMP >= R13 R12
 JUMP IF .if_for_{for_indent[current_indent]}'''
         print(a)
     return pattern.match(s) is not None
+
+# def <var>(<var>**)
 
 def define(s):
     global current_indent
@@ -275,6 +306,8 @@ NOP s.func_{function_name}'''
             return pattern.match(s) is not None
     return False
 
+# <var>(<var>**)
+
 def function(s):
   pattern = re.compile(r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*\((.*?)\)$")
   match = re.match(pattern, s)
@@ -290,6 +323,7 @@ def function(s):
         return pattern.match(s) is not None
     return False
 
+# indentation setting
 
 def indent(s,i=4):
     global current_indent
@@ -300,6 +334,8 @@ def indent(s,i=4):
     else:
         print("Indentation Error")
         return False
+
+# indent managing
 
 def indent_remain():
     global current_indent
@@ -348,7 +384,9 @@ def print_text():
             function(s)
     current_indent = 0
     indent_remain()
-    print('HLT')        
+    print('HLT') 
+
+    print(variable)       
     
     # Optionally, clear the text box after printing
     text_box.delete("1.0", "end")
