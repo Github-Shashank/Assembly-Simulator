@@ -22,7 +22,21 @@ d = {
     '^':'XOR',
     '|':'OR',
     '&':'AND',
-    '*':'MUL'
+    '*':'MUL',
+
+    'to 0':'SET_0',
+    '>>1' :'RSH',
+    '<<1' :'LSH',
+    '>>cl':'RCL',
+    '<<cl':'LCL',
+    '~='  :'NOT',
+    'mul':'MUL_8-15',
+    '++1':'R++',
+    '--1':'R--',
+    '&1':'LSB',
+    '&10000000':'MSB',
+    'LENGTH':'LEN'
+
 }
 
 # Error message if variable already initialised
@@ -170,7 +184,7 @@ def singleopr_var(s):
         var3 = match.group(3)
         a = f'''LD_M2R R0 {variable[var1]}
 LD_M2R R1 {variable[var2]}
-S_OPR {var3} R1 R0
+S_OPR {d[var3]} R1 R0
 LD_R2M R0 {variable[var1]}'''
         print(a)
     return pattern.match(s) is not None
@@ -184,9 +198,9 @@ def if_line(s):
       re.escape('=='),
       re.escape('!='),
       re.escape('<'),
-      re.escape('=>'),
+      re.escape('>='),
       re.escape('>'),
-      re.escape('=<'),
+      re.escape('<='),
       re.escape('odd'),
       re.escape('even')
     ]
