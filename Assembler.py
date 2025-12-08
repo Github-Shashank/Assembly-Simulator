@@ -122,9 +122,6 @@ def print_text():
         try:
             code[i] = words[0]+mnemonic[words[1]]
         except:
-            # print(i)
-            # print(words)
-            # print(mnemonic)
             pass
 
     print('\nMachine code :-\n')
