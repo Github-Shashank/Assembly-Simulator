@@ -106,23 +106,18 @@ def print_text():
                 a+= bin(eval(word+'+256'))[-8:]
             else:
                 if word[0:2] == 's.':
-                    print(line)
-                    print(word[0])
                     mnemonic[word[1:]] = bin(ins_addr+1024)[-10:]
                 elif word[0] == '.':
-                    print(line)
-                    print(word[0])
                     ins_address_list.append(ins_addr)
-        print(a,line)
+                    a+=' '+word
         code.append(a)
+        print(a,line)
 
     for i in ins_address_list:
         a = ''
         words = code[i].split(' ')
-        try:
-            code[i] = words[0]+mnemonic[words[1]]
-        except:
-            pass
+        code[i] = words[0]+mnemonic[words[1]]
+        print(code[i])
 
     print('\nMachine code :-\n')
 
