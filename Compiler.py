@@ -4,7 +4,7 @@ import ctypes
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 import re
 
-program = 0
+code = ""
 current_indent = 0.0
 if_id = 0
 if_indent = {}
@@ -39,6 +39,22 @@ d = {
 
 }
 
+def reset():
+    global code,current_indent,if_id,if_indent,while_id,while_indent,for_id,for_indent,def_id,def_indent,indent_code,variable
+    code = ""
+    current_indent = 0.0
+    if_id = 0
+    if_indent = {}
+    while_id = 0
+    while_indent = {}
+    for_id = 0
+    for_indent = {}
+    def_id = 0
+    def_indent = {}
+    indent_code = {}
+    variable = {}
+
+
 # Error message if variable already initialised
 
 def mem_addr_var(var):
@@ -46,7 +62,8 @@ def mem_addr_var(var):
         variable[var] = str(len(variable))
         return variable[var]
     else:
-        print('Already initialised var',var)
+        reset()
+        raise NameError('Already initialised var',var) # Error
 
 
 # int <var>
@@ -75,6 +92,7 @@ LD_R2M R0 {variable[var1]}'''
 # <var> = <var>
 
 def get_var(s):
+    global code
     pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)$"
     match = re.match(pattern,s)   # a = b
     if match:
@@ -83,11 +101,13 @@ def get_var(s):
         a = f'''LD_M2R R0 {variable[var2]}
 LD_R2M R0 {variable[var1]}'''
         print(a)
+        code += a+"\n"
     return re.match(pattern, s) is not None
 
 # <var> = input()
 
 def input_var(s):
+    global code
     pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*input\(\)$"
     match = re.match(pattern,s)
     if match:                   # a = input()
@@ -95,11 +115,13 @@ def input_var(s):
         a = f'''INP R0
 LD_R2M R0 {variable[var1]}'''
         print(a)
+        code += a+"\n"
     return re.match(pattern, s) is not None
 
 # print(<var>)
 
 def print_var(s):
+    global code
     pattern = r"^print\(([a-zA-Z_][a-zA-Z0-9_]*)\)$"
     match = re.match(pattern,s)
     if match:                   # print(a)
@@ -107,11 +129,13 @@ def print_var(s):
         a = f'''LD_M2R R0 {variable[var1]}
 OUT R0'''
         print(a)
+        code += a+"\n"
     return re.match(pattern, s) is not None
 
 # <var> = <var> <opr> <var>
 
 def setexp_var(s):
+    global code
     pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*([-+*/^|&])\s*([a-zA-Z_][a-zA-Z0-9_]*)$"
     match = re.match(pattern,s)
     if match:                   # a = b + c
@@ -124,11 +148,13 @@ LD_M2R R1 {variable[var4]}
 {d[var3]} R0 R1 R2
 LD_R2M R2 {variable[var1]}'''
         print(a)
+        code += a+"\n"
     return re.match(pattern, s) is not None
 
 # <var> <opr>= <var>
 
 def updatexp_byvar(s):
+    global code
     pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*([-+*/^|&])=\s*([a-zA-Z_][a-zA-Z0-9_]*)$"
     match = re.match(pattern,s)
     if match:                   # a += b
@@ -140,6 +166,7 @@ LD_M2R R1 {variable[var3]}
 {d[var2]} R0 R1 R0
 LD_R2M R0 {variable[var1]}'''
         print(a)
+        code += a+"\n"
     return re.match(pattern, s) is not None
 
 # <var> <opr>= <var>
@@ -156,11 +183,13 @@ LD_M2R R1 {variable[var1]}
 {d[var2]} R1 R0 R1
 LD_R2M R1 {variable[var1]}'''
         print(a)
+        code += a+"\n"
     return re.match(pattern, s) is not None
 
 # <var> = <var><s_opr> (operator needs single value i.e. x>>1, x++1, ~x etc.)
 
 def singleopr_var(s):
+    global code
     possible_values = [
       re.escape('to 0'),
       re.escape('>>1'),
@@ -187,6 +216,7 @@ LD_M2R R1 {variable[var2]}
 S_OPR {d[var3]} R1 R0
 LD_R2M R0 {variable[var1]}'''
         print(a)
+        code += a+"\n"
     return pattern.match(s) is not None
 
 # if <var> <cmp_opr> <var> : (comparison operator i.e. ==, !=, <, > etc.)
@@ -194,6 +224,7 @@ LD_R2M R0 {variable[var1]}'''
 def if_line(s):
     global current_indent
     global if_id
+    global code
     operators = [
       re.escape('=='),
       re.escape('!='),
@@ -218,11 +249,13 @@ LD_M2R R1 {variable[var3]}
 CMP {var2} R0 R1
 JUMP IF_NOT .else_{if_indent[current_indent]}'''
         print(a)
+        code += a+"\n"
     return pattern.match(s) is not None
 
 # else :
 
 def else_line(s):
+    global code
     global current_indent
     pattern = r"^else\s*:$"
     match = re.match(pattern,s)
@@ -231,6 +264,7 @@ def else_line(s):
         a = f'''JUMP ONLY .end_if_{if_indent[current_indent]}
 NOP s.else_{if_indent[current_indent]}'''
         print(a)
+        code += a+"\n"
     return re.match(pattern, s) is not None
 
 # while <var> <cmp_opr> <var> :
@@ -238,6 +272,7 @@ NOP s.else_{if_indent[current_indent]}'''
 def while_line(s):
     global current_indent
     global while_id
+    global code
     operators = [
       re.escape('=='),
       re.escape('!='),
@@ -265,6 +300,7 @@ LD_M2R R14 {variable[var3]}
 CMP {var2} R15 R14
 JUMP IF_NOT .whlie_not_{while_indent[current_indent]}'''
         print(a)
+        code += a+"\n"
     return pattern.match(s) is not None
 
 # for <var> in range(<val>)
@@ -290,6 +326,7 @@ LDI R12 {var2}
 CMP >= R13 R12
 JUMP IF .if_for_{for_indent[current_indent]}'''
         print(a)
+        code += a + "\n"
     return pattern.match(s) is not None
 
 # def <var>(<var>**)
@@ -297,6 +334,7 @@ JUMP IF .if_for_{for_indent[current_indent]}'''
 def define(s):
     global current_indent
     global def_id
+    global code
     pattern = re.compile(r"^def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\((.*?)\)\s*:$")
     match = re.match(pattern, s)
     if match:
@@ -312,10 +350,12 @@ NOP s.skip_{def_indent[current_indent]}'''
             a = f'''JUMP ONLY .skip_{def_indent[current_indent]}
 NOP s.func_{function_name}'''
             print(a)
+            code += a+"\n"
             for i in arguments:
                 int_var(f'int {i}')
             for i,var in enumerate(arguments):
                 print(f'LD_R2M R{i} {variable[var]}')
+                code += f'LD_R2M R{i} {variable[var]}\n'
                 
             return pattern.match(s) is not None
     return False
@@ -323,6 +363,7 @@ NOP s.func_{function_name}'''
 # <var>(<var>**)
 
 def function(s):
+  global code
   pattern = re.compile(r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*\((.*?)\)$")
   match = re.match(pattern, s)
 
@@ -333,7 +374,9 @@ def function(s):
         arguments = [arg.strip() for arg in arguments_str.split(',') if arg.strip()]
         for i,var in enumerate(arguments):
             print(f'LD_M2R R{i} {variable[var]}')
+            code += f'LD_M2R R{i} {variable[var]}\n'
         print(f'CALL .func_{function_name}')
+        code += f'CALL .func_{function_name}\n'
         return pattern.match(s) is not None
     return False
 
@@ -346,8 +389,8 @@ def indent(s,i=4):
         current_indent = n
         return True
     else:
-        print("Indentation Error")
-        return False
+        reset()
+        raise IndentationError
 
 # indent managing
 
@@ -362,20 +405,26 @@ def indent_remain():
         del indent_code[i]
 
 
-def print_text():
-    global program
+def print_text(cmp_file,asm_file=""):
     global current_indent
+    global variable
+    global code 
     """
     This function retrieves the text from the text box
     and prints it to the console.  It gets the entire
     content from the first character ("1.0") to the end ("end").
     """
-    program += 1
-    print('\nProgram',program,'\n')
-    text_content = text_box.get("1.0", "end")
+    
+    if not cmp_file.endswith(".pycmp"):
+        reset()
+        raise FileExistsError("It should ends with .pycmp")
+    
+    file = open(cmp_file,'r')
+    data = file.read()
+    file.close()
 
-    print(text_content)
-    l = text_content.split('\n')
+    print(data)
+    l = data.split('\n')
     print()
     for i in l:
         if indent(i):
@@ -398,29 +447,42 @@ def print_text():
             function(s)
     current_indent = 0
     indent_remain()
-    print('HLT') 
+    print('HLT')
+    code += "HLT" 
 
-    print(variable)       
-    
+    print(variable) 
+    print("Code\n\n",code,sep="")
+    if asm_file == "":
+        asm_file = cmp_file[:-6]+".pyasm"
+    else:
+        if not asm_file.endswith(".pyasm"):
+            reset()
+            raise FileExistsError(f"{asm_file} should ends with .pyasm")
+    file = open(asm_file,'w')
+    file.write(code)
+    file.close()
+    reset()
     # Optionally, clear the text box after printing
-    text_box.delete("1.0", "end")
+    # text_box.delete("1.0", "end")
+
+
 
 # Create the main window
-window = tk.Tk()
-window.title("Multi-line Text Box Example")  # Set the title of the window
+# window = tk.Tk()
+# window.title("Multi-line Text Box Example")  # Set the title of the window
 
-# Create the text box (Text widget)
-text_box = tk.Text(window, height=20, width=50)  # Set height and width
-text_box.pack(pady=20, padx=20) # Add padding around the textbox
+# # Create the text box (Text widget)
+# text_box = tk.Text(window, height=20, width=50)  # Set height and width
+# text_box.pack(pady=20, padx=20) # Add padding around the textbox
 
-# Create the button to print the text
-print_button = tk.Button(window, text="Print Assembly Code", command=print_text)
-print_button.pack() # Use pack layout
+# # Create the button to print the text
+# print_button = tk.Button(window, text="Print Assembly Code", command=print_text)
+# print_button.pack() # Use pack layout
 
-# Create an Exit button
-exit_button = tk.Button(window, text="Exit", command=window.destroy)
-exit_button.pack(pady=10)
+# # Create an Exit button
+# exit_button = tk.Button(window, text="Exit", command=window.destroy)
+# exit_button.pack(pady=10)
 
-# Start the Tkinter event loop.  This is necessary for the GUI
-# to respond to events like button clicks and text entry.
-window.mainloop()
+# # Start the Tkinter event loop.  This is necessary for the GUI
+# # to respond to events like button clicks and text entry.
+# window.mainloop()
