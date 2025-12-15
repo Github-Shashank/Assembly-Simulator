@@ -1,0 +1,9 @@
+int a
+int b
+int c
+a = input()
+b = input()
+c = input()
+print(a)
+print(b)
+print(c)
