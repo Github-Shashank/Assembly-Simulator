@@ -77,17 +77,24 @@ mnemonic = {
     'BY'    :'11'
 }
 
-def print_text():
-    global program
+def print_text(asm_file,bin_file=""):
+    # global program
     """
     This function retrieves the text from the text box
     and prints it to the console.  It gets the entire
     content from the first character ("1.0") to the end ("end").
     """
-    program += 1
-    print('\nProgram',program,'\n')
-    text_content = text_box.get("1.0", "end")
-    print("Assembly Code:- \n")
+    # program += 1
+    # print('\nProgram',program,'\n')
+    if not asm_file.endswith(".pyasm"):
+        raise FileExistsError("It should ends with .pyasm")
+    
+    file = open(asm_file,'r')
+    text_content = file.read()
+    file.close()
+    
+    # text_content = text_box.get("1.0", "end")
+    # print("Assembly Code:- \n")
     print(text_content[:-1])
     
     lines = text_content.split('\n')
@@ -119,35 +126,43 @@ def print_text():
         code[i] = words[0]+mnemonic[words[1]]
         print(code[i])
 
-    print('\nMachine code :-\n')
+    # print('\nMachine code :-\n')
 
+    if bin_file == "":
+        bin_file = asm_file[:-6]+".pybin"
+    else:
+        if not asm_file.endswith(".pybin"):
+            raise FileExistsError(f"{asm_file} should ends with .pybin")
+
+    file = open(bin_file,'w')        
     for i in code:
         if len(i) == 17:
-            print("'"+i,end="',")
+            print(i,file=file)
     print()
+    file.close()
 
     d[1] = lines
     d[0] = code
 
     # Optionally, clear the text box after printing
-    text_box.delete("1.0", "end")
+    # text_box.delete("1.0", "end")
 
 # Create the main window
-window = tk.Tk()
-window.title("Multi-line Text Box Example")  # Set the title of the window
+# window = tk.Tk()
+# window.title("Multi-line Text Box Example")  # Set the title of the window
 
 # Create the text box (Text widget)
-text_box = tk.Text(window, height=20, width=50)  # Set height and width
-text_box.pack(pady=20, padx=20) # Add padding around the textbox
+# text_box = tk.Text(window, height=20, width=50)  # Set height and width
+# text_box.pack(pady=20, padx=20) # Add padding around the textbox
 
-# Create the button to print the text
-print_button = tk.Button(window, text="Print Machine Code", command=print_text)
-print_button.pack() # Use pack layout
+# # Create the button to print the text
+# print_button = tk.Button(window, text="Print Machine Code", command=print_text)
+# print_button.pack() # Use pack layout
 
-# Create an Exit button
-exit_button = tk.Button(window, text="Exit", command=window.destroy)
-exit_button.pack(pady=10)
+# # Create an Exit button
+# exit_button = tk.Button(window, text="Exit", command=window.destroy)
+# exit_button.pack(pady=10)
 
-# Start the Tkinter event loop.  This is necessary for the GUI
-# to respond to events like button clicks and text entry.
-window.mainloop()
+# # Start the Tkinter event loop.  This is necessary for the GUI
+# # to respond to events like button clicks and text entry.
+# window.mainloop()
