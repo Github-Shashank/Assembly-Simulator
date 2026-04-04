@@ -1,0 +1,30 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Build / output files
+*.pybin
+*.bin
+*.out
+
+# Temporary / test files
+new.txt
+file.pyasm
+file.pybin
+newfile.pyasm
+newfile.pycmp
+newfiles.pyasm
